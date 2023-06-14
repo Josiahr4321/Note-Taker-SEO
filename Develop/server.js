@@ -1,47 +1,57 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
-const server= require ('./assets/js/index.js')
+let notesDb=require(`./db/db.json`);
+const fs=require(`fs`);
 const PORT = 3001;
+const { v4: uuidv4 } = require('uuid');
+const serveStatic = require('serve-static');
+
 
 const app = express();
 
 //middleaware
+
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(serveStatic('public'));
 
+
+// default "home page"
 app.get('/', (req, res) =>
+  res.sendFile(path.join(__dirname, './public/index.html'))
+);
+
+// notes html
+app.get('/notes', (req, res) =>
   res.sendFile(path.join(__dirname, '/public/notes.html'))
 );
 
 // GET request for notes
 app.get('/api/notes', (req, res) => {
   // Inform the client
-  res.json(`${req.method} request received to get notes`);
-
+  res.status(200).json(notesDb);
   // Log our request to the terminal
   console.info(`${req.method} request received to get notes`);
-  res.status(200).json(notesDb);
 });
 
 // GET a single note
-app.get('/api//:noteId', (req, res) => {
-  if (req.params.noteId) {
-    console.info(`${req.method} request received to get a single a review`);
-    const noteId = req.params.noteId;
-    for (let i = 0; i < notes.length; i++) {
-      const currentNote = notes[i];
-      if (currentNote.noteId === noteId) {
-        res.json(currentNote);
-        return;
-      }
-    }
-    res.status(404).send('Note not found');
-  } else {
-    res.status(400).send('Note ID not provided');
-  }
-});
+// app.get('/api//:noteId', (req, res) => {
+//   if (req.params.noteId) {
+//     console.info(`${req.method} request received to get a single a review`);
+//     const noteId = req.params.noteId;
+//     for (let i = 0; i < notes.length; i++) {
+//       const currentNote = notes[i];
+//       if (currentNote.noteId === noteId) {
+//         res.json(currentNote);
+//         return;
+//       }
+//     }
+//     res.status(404).send('Note not found');
+//   } else {
+//     res.status(400).send('Note ID not provided');
+//   }
+// });
 
 
 // POST request for notes
@@ -57,12 +67,13 @@ app.post('/api/notes', (req, res) => {
   // If all the required properties are present
     if (title && text) {
   // Variable for the object we will save
-    const newNote = {
-      title,
-      text,
-    };
+  const newNote = {
+    id: uuidv4(), // Make sure to install and import the 'uuid' module
+    title: 'Sample Note',
+    text: 'This is a sample note',
+  };
     // Obtain existing notes
-    fs.readFile('./db/db.json', 'utf8', (err, data) => {
+    fs.readFile('./db/db.json', 'utf-8', (err, data) => {
       if (err) {
         console.error(err);
       } else {
@@ -84,10 +95,14 @@ app.post('/api/notes', (req, res) => {
       }
     });
 
-  const response = {
+    const response = {
       status: 'success',
       body: newNote,
     };
+    
+    console.log(response);
+    res.status(201).json(response);
+    
 
     console.log(response);
     res.status(201).json(response);
@@ -100,7 +115,7 @@ app.post('/api/notes', (req, res) => {
 });
 
 // DELETE request for upvotes
-app.delete('/api/notes', (req, res) => {
+app.delete('/api/notes/:id', (req, res) => {
   // Inform the client
   res.json(`${req.method} request received to delete note`);
 
@@ -112,3 +127,4 @@ app.delete('/api/notes', (req, res) => {
 app.listen(PORT, () =>
   console.log(`Express server listening on port ${PORT}!`)
 );
+
