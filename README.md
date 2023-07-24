@@ -35,6 +35,7 @@ Images
 The last image shows a note was deleted if you compare the second and third image
 
 Links
+
 https://shrouded-hamlet-19311-c5484317fccd.herokuapp.com
 
 https://github.com/Josiahr4321/Note-Taker-SEO
